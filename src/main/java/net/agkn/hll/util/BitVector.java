@@ -167,6 +167,26 @@ public class BitVector implements Cloneable {
         };
     }
 
+    public boolean contains(final long registerIndex,final long value){
+        final long bitIndex = registerIndex * registerWidth;
+        final int firstWordIndex = (int)(bitIndex >>> LOG2_BITS_PER_WORD)/*aka (bitIndex / BITS_PER_WORD)*/;
+        final int secondWordIndex = (int)((bitIndex + registerWidth - 1) >>> LOG2_BITS_PER_WORD)/*see above*/;
+        final int bitRemainder = (int)(bitIndex & BITS_PER_WORD_MASK)/*aka (bitIndex % BITS_PER_WORD)*/;
+
+        // NOTE:  matches getRegister()
+        final long registerValue;
+        final long words[] = this.words/*for convenience/performance*/;
+        if(firstWordIndex == secondWordIndex) {
+            registerValue = ((words[firstWordIndex] >>> bitRemainder) & registerMask);
+        }
+        else /*register spans words*/ {
+            registerValue = (words[firstWordIndex] >>> bitRemainder)/*no need to mask since at top of word*/
+                    | (words[secondWordIndex] << (BITS_PER_WORD - bitRemainder)) & registerMask;
+        }
+
+        return !(value > registerValue);
+    }
+
     // ------------------------------------------------------------------------
     // composite accessors
     /**

@@ -31,6 +31,7 @@ import net.agkn.hll.util.BitUtil;
 import net.agkn.hll.util.HLLUtil;
 import net.agkn.hll.util.LongIterator;
 import net.agkn.hll.util.NumberUtil;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * A probabilistic set of hashed <code>long</code> elements. Useful for computing
@@ -853,6 +854,49 @@ public class HLL implements Cloneable {
             return;
         default:
                 throw new RuntimeException("Unsupported HLL type " + type);
+        }
+    }
+
+    public boolean exists(final long rawValue){
+        switch (this.type) {
+            case EMPTY:
+                return false;
+            case EXPLICIT:
+                return this.explicitStorage.contains(rawValue);
+            case SPARSE:{
+                final long substreamValue = (rawValue >>> log2m);
+                final byte p_w;
+
+                if(substreamValue == 0L) {
+                    p_w = 0;
+                } else {
+                    p_w = (byte)(1 + BitUtil.leastSignificantBit(substreamValue| pwMaxMask));
+                }
+                if(p_w == 0) {
+                    return false;
+                }
+                final int j = (int)(rawValue & mBitsMask);
+
+                final byte currentValue = sparseProbabilisticStorage.get(j);
+                return p_w <= currentValue;
+            }
+            case FULL:{
+                final long substreamValue = (rawValue >>> log2m);
+                final byte p_w;
+
+                if (substreamValue == 0L) {
+                    p_w = 0;
+                } else {
+                    p_w = (byte)(1 + BitUtil.leastSignificantBit(substreamValue| pwMaxMask));
+                }
+                if(p_w == 0) {
+                    return false;
+                }
+                final int j = (int)(rawValue & mBitsMask);
+                return probabilisticStorage.contains(j, p_w);
+            }
+            default:
+                throw new NotImplementedException();
         }
     }
 

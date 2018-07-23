@@ -8,6 +8,8 @@ A Java implementation of [HyperLogLog](http://algo.inria.fr/flajolet/Publication
 
 Similarly, certain parameters have different bounds in order to deal with VM limitations like maximum array length. Specifically, `log2m` has a maximum value of 30 in this implementation whereas the storage specification states a maximum value of 31 (which can be realized in the PostgreSQL implementation).
 
+**this implementation add exists function to HLL class**
+
 Overview
 --------
 
